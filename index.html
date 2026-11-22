@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semencraft III</title>
+  <meta name="description" content="Crea tu cuenta de Semencraft III, envía tu pago por Yape y descarga el launcher.">
+  <meta name="theme-color" content="#0b0a12">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="Semencraft III, inicio">
+      <img src="assets/icon.png" alt="" width="28" height="28">
+      <span>Semencraft III</span>
+    </a>
+    <nav class="topnav" id="topnav"></nav>
+  </header>
+
+  <main id="app" class="app" aria-live="polite"></main>
+
+  <footer class="footer">
+    <span>Semencraft III</span>
+    <a href="https://discord.gg/WBaA4UrVvU" target="_blank" rel="noopener">Discord</a>
+    <a href="https://github.com/XK-GamerX/SemencraftLauncherJavaFX/releases/latest" target="_blank" rel="noopener" data-download>Descargar launcher</a>
+  </footer>
+
+  <div class="toast-layer" id="toasts" role="status"></div>
+  <div class="modal-layer" id="modal" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
