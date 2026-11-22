@@ -228,6 +228,25 @@ function secretModal(title, text, secret) {
   });
 }
 
+/** Panel encima de todo con el QR de Yape, para escanearlo desde el celular. */
+function qrModal() {
+  const config = state.config || DEFAULT_CONFIG;
+  modal(`
+    <div class="modal modal-qr">
+      <h2>Escanea para pagar</h2>
+      <img src="assets/yape-qr.png" alt="Código QR de Yape para pagar al ${esc(config.yapeNumber)}" width="761" height="800">
+      <p class="muted">Abre Yape, toca <b>Escanear QR</b> y apunta a la pantalla. También puedes yapear al <b>${esc(config.yapeNumber)}</b>.</p>
+      <div class="modal-actions"><button class="btn btn-primary btn-block" data-close>Cerrar</button></div>
+    </div>`);
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-qr]")) {
+    e.preventDefault();
+    qrModal();
+  }
+});
+
 /** Cabeza del jugador sacada de su skin de Semencraft (la cara y el sombrero), o la de Steve. */
 function headImg(username) {
   const img = document.createElement("canvas");
@@ -532,7 +551,7 @@ async function home() {
       <div class="stack">
         <div class="steps">
           <div class="step"><span class="step-num">1</span><div><h3>Crea tu cuenta</h3><p class="muted">Con el mismo nombre que usas en Minecraft.</p></div></div>
-          <div class="step"><span class="step-num">2</span><div><h3>Paga por Yape</h3><div class="price-line"><span class="price">${soles(config.priceNow)}</span><span class="muted">al ${esc(config.yapeNumber)}</span></div></div></div>
+          <div class="step"><span class="step-num">2</span><div><h3>Paga por Yape</h3><div class="price-line"><span class="price">${soles(config.priceNow)}</span><span class="muted">al ${esc(config.yapeNumber)}</span></div><button class="btn btn-secondary btn-sm btn-qr" type="button" data-qr>Mostrar QR</button></div></div>
           <div class="step"><span class="step-num">3</span><div><h3>Sube la captura</h3><p class="muted">La revisamos y activamos tu acceso al launcher.</p></div></div>
         </div>
         ${priceNotice(config)}
@@ -716,6 +735,7 @@ function paymentForm(config, rejected) {
       <div class="stack" style="gap:6px">
         <span class="faint">Yapea <b style="color:var(--text)">${soles(config.priceNow)}</b> al número</span>
         <div class="row"><span class="yape-number">${esc(config.yapeNumber)}</span><button class="copy" type="button" data-copy="${esc(config.yapeNumber.replace(/\s/g, ""))}">Copiar</button></div>
+        <button class="btn btn-secondary btn-sm btn-qr" type="button" data-qr>Mostrar QR</button>
         <span class="faint">Después sube aquí la captura de la operación.</span>
       </div>
     </div>

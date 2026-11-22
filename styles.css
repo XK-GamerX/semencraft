@@ -292,6 +292,10 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
 .modal-layer[hidden] { display: none; }
 .modal { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.modal-qr { width: min(400px, 100%); text-align: center; align-items: center; }
+.modal-qr img { width: 100%; height: auto; max-height: 64vh; object-fit: contain; border-radius: 12px; }
+.btn-qr { align-self: flex-start; margin-top: 8px; }
+.yape .btn-qr { margin-top: 0; }
 .modal-image { width: min(720px, 100%); background: transparent; border: 0; box-shadow: none; padding: 0; }
 .modal-image img { max-height: 86vh; margin: 0 auto; border-radius: 10px; }
 .secret { padding: 12px 14px; border-radius: 8px; background: var(--field); border: 1px solid var(--line-strong); font-family: "Minecraft", monospace; font-size: 17px; letter-spacing: 0.06em; word-break: break-all; }
@@ -317,6 +321,7 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
 }
 @media (max-width: 520px) {
   .yape { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+  .yape .btn-qr { align-self: center; }
   .toolbar .input { max-width: none; }
   .topbar .brand span { display: none; }
 }
