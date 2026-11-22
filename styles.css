@@ -323,3 +323,56 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Esqueletos de carga (en vez del circulo) ---------- */
+
+.sk-wrap { display: flex; flex-direction: column; gap: 18px; }
+.sk {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.11) 40%, rgba(255, 255, 255, 0.05) 80%);
+  background-size: 300% 100%;
+  animation: sk-shine 1.3s ease-in-out infinite;
+}
+.sk-square { border-radius: 7px; }
+.sk-row { display: flex; align-items: center; gap: 18px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.sk-row:last-child { border-bottom: 0; }
+@keyframes sk-shine { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+
+/* ---------- Discord opcional ---------- */
+
+.benefits { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.benefits b { color: var(--text); font-weight: 700; }
+.discord-opt { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: rgba(88, 101, 242, 0.06); }
+.discord-opt summary { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; list-style: none; flex-wrap: wrap; }
+.discord-opt summary::-webkit-details-marker { display: none; }
+.discord-opt summary::after { content: "▾"; margin-left: auto; color: var(--text-3); transition: transform 0.15s; }
+.discord-opt[open] summary::after { transform: rotate(180deg); }
+.code-input { font-family: "Minecraft", monospace; font-size: 26px; letter-spacing: 0.4em; text-align: center; }
+.delivery { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-2); padding: 10px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); }
+.delivery .dot { flex: none; width: 9px; height: 9px; margin-top: 5px; border-radius: 50%; background: var(--text-3); animation: sk-pulse 1.2s ease-in-out infinite; }
+.delivery.ok .dot { background: #4ade80; animation: none; }
+.delivery.bad .dot { background: #f87171; animation: none; }
+.delivery.bad { color: #fca5a5; }
+@keyframes sk-pulse { 50% { opacity: 0.35; } }
+
+/* ---------- Cambiar de equipo ---------- */
+
+.team-pick { display: grid; gap: 8px; max-height: 320px; overflow-y: auto; }
+.team-option { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.team-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.team-option input { accent-color: var(--accent); }
+.team-swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+
+/* ---------- Panel admin: botones con Cera Pro (Minecraft Ten solo en titulos) ---------- */
+
+body[data-view="admin"] .btn,
+body[data-view="admin"] .tab,
+.drawer .btn {
+  font-family: "Cera Pro", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}

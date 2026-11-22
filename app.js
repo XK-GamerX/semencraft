@@ -267,6 +267,173 @@ function paymentBadge(status) {
   }[status] || '<span class="badge">Sin pago</span>';
 }
 
+// ---------- Esqueletos de carga ----------
+
+/** Bloques grises con brillo que imitan lo que va a aparecer, mientras cargan los datos. */
+function skeleton(kind) {
+  const line = (w, hgt = 12) => `<span class="sk" style="width:${w};height:${hgt}px"></span>`;
+  const rows = (n, cols) => Array.from({ length: n }, (_, i) => `
+    <div class="sk-row">${line("34px", 34).replace('class="sk"', 'class="sk sk-square"')}${cols.map((w) => line(typeof w === "function" ? w(i) : w)).join("")}</div>`).join("");
+  switch (kind) {
+    case "admin":
+      return `<div class="sk-wrap" aria-busy="true" aria-label="Cargando">
+        <div class="row">${line("260px", 30)}</div>
+        <div class="stats">${Array.from({ length: 6 }, () => `<div class="stat">${line("48px", 24)}${line("80px", 10)}</div>`).join("")}</div>
+        <div class="row">${Array.from({ length: 4 }, () => line("120px", 34)).join("")}</div>
+        <div class="card">${rows(6, [(i) => `${140 + (i * 37) % 90}px`, "90px", "70px", "110px"])}</div>
+      </div>`;
+    case "account":
+      return `<div class="account sk-wrap" aria-busy="true" aria-label="Cargando">
+        <div class="card stack">${line("240px", 30)}${line("100%", 8)}${line("100%", 120)}${line("60%")}${line("160px", 44)}</div>
+        <aside class="stack"><div class="card stack">${line("120px", 18)}${line("90%")}${line("80%")}${line("70%")}</div><div class="card stack">${line("150px", 18)}${line("100%", 44)}</div></aside>
+      </div>`;
+    case "table":
+      return `<div class="sk-wrap" aria-busy="true" aria-label="Cargando"><div class="row">${line("280px", 40)}${line("160px", 40)}</div><div class="card">${rows(8, [(i) => `${130 + (i * 41) % 100}px`, "90px", "80px", "100px", "60px"])}</div></div>`;
+    case "proofs":
+      return `<div class="sk-wrap" aria-busy="true" aria-label="Cargando"><div class="row">${line("160px", 40)}</div><div class="proofs">${Array.from({ length: 3 }, () => `
+        <div class="proof"><span class="sk" style="width:100%;height:220px;border-radius:0"></span><div class="proof-body">${line("60%", 16)}${line("80%")}${line("140px", 32)}</div></div>`).join("")}</div></div>`;
+    case "list":
+      return `<div class="sk-wrap card" aria-busy="true" aria-label="Cargando">${Array.from({ length: 8 }, (_, i) => `<div class="sk-row">${line(`${200 + (i * 53) % 160}px`)}<span class="spacer"></span>${line("110px", 10)}</div>`).join("")}</div>`;
+    case "drawer":
+      return `<div class="sk-wrap stack" aria-busy="true" aria-label="Cargando">
+        <div class="row">${line("44px", 44).replace('class="sk"', 'class="sk sk-square"')}${line("180px", 24)}</div>
+        <div class="row">${line("90px", 22)}${line("90px", 22)}</div>
+        ${Array.from({ length: 5 }, () => `<div class="row">${line("90px")}${line("160px")}</div>`).join("")}
+        ${line("80px", 10)}<div class="row">${line("110px", 34)}${line("140px", 34)}${line("90px", 34)}</div>
+        ${line("80px", 10)}<div class="row">${line("130px", 34)}${line("120px", 34)}</div>
+      </div>`;
+    default:
+      return `<div class="card stack sk-wrap" aria-busy="true" aria-label="Cargando">${line("50%", 28)}${line("90%")}${line("75%")}${line("160px", 44)}</div>`;
+  }
+}
+
+// ---------- Discord (opcional) ----------
+
+/** Lo que gana un jugador al vincular su Discord (lo hace SemmieBOT). */
+function discordBenefits() {
+  return `
+    <ul class="benefits">
+      <li><b>Rol y canales de tu equipo:</b> el bot te da el rol de tu equipo y acceso a su chat y canal de voz privados.</li>
+      <li><b>Tu nombre de Minecraft en Discord:</b> tu apodo en el servidor se pone igual que en el juego, así todos te reconocen.</li>
+      <li><b>Rol de Registrado</b> y menciones en los avisos de tu equipo (quién entra, quién sale).</li>
+      <li><b>Más fácil recuperar tu cuenta:</b> si olvidas la contraseña, un admin puede confirmar por Discord que eres tú.</li>
+    </ul>`;
+}
+
+/** Card de "Mi cuenta" para vincular el Discord despues de crear la cuenta. */
+function discordCard(profile) {
+  if (profile.discord) {
+    return `<div class="card stack">
+      <div class="row"><img src="assets/discord.png" alt="" width="22" height="22"><h3>Discord vinculado</h3></div>
+      <p class="muted">Tu cuenta está unida a <b style="color:var(--text)">${esc(profile.discord)}</b>. El bot ya puede darte tus roles y canales.</p>
+    </div>`;
+  }
+  return `<div class="card stack" id="discord-card">
+    <div class="row"><img src="assets/discord.png" alt="" width="22" height="22"><h3>Vincula tu Discord</h3><span class="badge">Opcional</span></div>
+    <p class="muted">Es recomendable. Tienes que estar en el <a href="${DISCORD_URL}" target="_blank" rel="noopener">servidor de Discord</a>. Al vincularlo:</p>
+    ${discordBenefits()}
+    <form class="stack" id="discord-form" novalidate style="gap:10px">
+      <input class="input" name="discord" placeholder="Tu usuario de Discord" maxlength="40" autocomplete="off">
+      <p class="error-text" id="discord-error"></p>
+      <button class="btn btn-discord" type="submit">Enviarme un código</button>
+    </form>
+  </div>`;
+}
+
+function bindDiscordCard() {
+  const form = document.getElementById("discord-form");
+  if (!form) return;
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const error = document.getElementById("discord-error");
+    const button = form.querySelector("button[type=submit]");
+    const name = form.discord.value.trim();
+    error.textContent = "";
+    if (!name) return (error.textContent = "Escribe tu usuario de Discord.");
+    button.disabled = true;
+    try {
+      const job = await api("discordLinkStart", { discordUsername: name });
+      discordCodeModal(job, name);
+    } catch (err) {
+      error.textContent = err.message;
+    }
+    button.disabled = false;
+  };
+}
+
+/**
+ * Pide el codigo que SemmieBOT manda por mensaje directo. Mientras tanto consulta si el bot pudo
+ * enviarlo, para avisar si el jugador tiene los mensajes directos cerrados.
+ */
+function discordCodeModal(job, discordName, onDone) {
+  let current = job;
+  let timer = null;
+  modal(`
+    <form class="modal" id="code-form">
+      <div class="row"><img src="assets/discord.png" alt="" width="26" height="26"><h2>Revisa tus mensajes de Discord</h2></div>
+      <p class="muted">SemmieBOT le está enviando un código de 6 números a <b style="color:var(--text)">${esc(job.discordDisplayName || discordName)}</b> por mensaje directo. Vence en 10 minutos.</p>
+      <div class="delivery" id="delivery"><span class="dot"></span><span>Enviando el código...</span></div>
+      <input class="input code-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+      <p class="error-text" id="code-error"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>Hacerlo después</button>
+        <button type="button" class="btn btn-secondary" id="resend">Enviar otro</button>
+        <button class="btn btn-primary" type="submit">Vincular</button>
+      </div>
+    </form>`, (layer, close) => {
+    const form = layer.querySelector("#code-form");
+    const delivery = layer.querySelector("#delivery");
+    form.code.focus();
+    form.code.oninput = () => (form.code.value = form.code.value.replace(/\D/g, "").slice(0, 6));
+    const setDelivery = (kind, text) => {
+      delivery.className = "delivery " + kind;
+      delivery.lastElementChild.textContent = text;
+    };
+    const poll = async () => {
+      if (!document.body.contains(form)) return clearInterval(timer);
+      try {
+        const st = await api("discordLinkStatus", { verificationId: current.verificationId });
+        if (st.delivery === "sent") setDelivery("ok", "Código enviado. Míralo en tus mensajes directos de Discord.");
+        else if (st.delivery === "delivery_failed") setDelivery("bad", "No pudimos enviarte el mensaje. En Discord, abre el servidor > Ajustes de privacidad y activa los mensajes directos; luego toca «Enviar otro».");
+        else if (st.delivery === "expired" || st.status === "expired") setDelivery("bad", "El código venció. Toca «Enviar otro».");
+      } catch {
+        // Se vuelve a intentar en el siguiente ciclo.
+      }
+    };
+    timer = setInterval(poll, 3000);
+    poll();
+    layer.querySelector("#resend").onclick = async (e) => {
+      e.target.disabled = true;
+      try {
+        current = await api("discordLinkStart", { discordUsername: discordName });
+        setDelivery("", "Enviando un código nuevo...");
+        form.code.value = "";
+        form.code.focus();
+      } catch (err) {
+        layer.querySelector("#code-error").textContent = err.message;
+      }
+      e.target.disabled = false;
+    };
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const error = layer.querySelector("#code-error");
+      error.textContent = "";
+      if (form.code.value.length !== 6) return (error.textContent = "El código tiene 6 números.");
+      try {
+        const data = await api("discordLinkFinish", { verificationId: current.verificationId, code: form.code.value });
+        state.profile = data.profile;
+        clearInterval(timer);
+        close();
+        toast("Discord vinculado. El bot te dará tus roles en unos minutos.");
+        if (onDone) onDone();
+        else if (location.hash.startsWith("#/cuenta")) account();
+      } catch (err) {
+        error.textContent = err.message;
+      }
+    };
+  });
+}
+
 // ---------- Navegacion ----------
 
 const ROUTES = { "": home, login: login, registro: register, cuenta: account, admin: admin };
@@ -277,7 +444,8 @@ async function route() {
   document.body.classList.remove("drawer-open");
   closeDrawer();
   renderNav(name);
-  app.innerHTML = '<div class="sc-wait"><div class="sc-wait-ring"></div></div>';
+  document.body.dataset.view = name || "inicio";
+  app.innerHTML = skeleton(name === "admin" ? "admin" : name === "cuenta" ? "account" : "page");
   try {
     await view();
   } catch (error) {
@@ -425,6 +593,14 @@ async function register() {
       <p class="hint">De 5 a 16 caracteres: letras, números o guion bajo. Es el nombre con el que entrarás al servidor.</p>
       <div class="icon-field">${ICON.lock}<input class="input" name="password" type="password" autocomplete="new-password" placeholder="Contraseña" required></div>
       <div class="icon-field">${ICON.lock}<input class="input" name="repeat" type="password" autocomplete="new-password" placeholder="Repite la contraseña" required></div>
+      <details class="discord-opt">
+        <summary><img src="assets/discord.png" alt="" width="18" height="18">Vincular mi Discord <span class="badge">Opcional, recomendado</span></summary>
+        <div class="stack" style="gap:10px;margin-top:12px">
+          <input class="input" name="discord" placeholder="Tu usuario de Discord" maxlength="40" autocomplete="off">
+          <p class="hint">Tienes que estar en el <a href="${DISCORD_URL}" target="_blank" rel="noopener">servidor</a>. SemmieBOT te mandará un código por mensaje directo. También puedes hacerlo después desde tu cuenta.</p>
+          ${discordBenefits()}
+        </div>
+      </details>
       <p class="error-text" id="error"></p>
       <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
       <p class="auth-switch">¿Ya tienes cuenta? <a href="#/login">Inicia sesión</a></p>
@@ -442,13 +618,16 @@ async function register() {
     if (form.password.value !== form.repeat.value) return (error.textContent = "Las contraseñas no coinciden.");
     button.disabled = true;
     try {
-      const data = await api("register", { username, password: form.password.value });
+      const discord = form.discord.value.trim();
+      const data = await api("register", { username, password: form.password.value, discordUsername: discord });
       setSession(data.token);
       state.profile = data.profile;
       toast("Cuenta creada. Ahora envía tu pago.");
       location.hash = "#/cuenta";
+      if (data.discord) discordCodeModal(data.discord, discord);
     } catch (err) {
       error.textContent = err.message;
+      if (err.code === "discord_not_found") form.querySelector(".discord-opt").open = true;
       button.disabled = false;
     }
   };
@@ -515,6 +694,7 @@ async function account() {
           </dl>
           <button class="btn btn-secondary btn-sm" id="change-password">Cambiar contraseña</button>
         </div>
+        ${discordCard(profile)}
         ${payments.length ? `<div class="card stack"><h3>Tus pagos</h3><div class="history">${payments.map((p) => `
           <div class="history-item"><span>${soles(p.amount_soles)} · ${esc(date(p.created_at, false))}</span>${paymentBadge(p.status)}</div>`).join("")}</div></div>` : ""}
         ${discordNotice()}
@@ -522,6 +702,7 @@ async function account() {
     </div>`));
 
   document.getElementById("change-password").onclick = changePasswordModal;
+  bindDiscordCard();
   bindDownloadButtons(app);
   if (!granted && !pending && profile.access !== "revoked") bindPaymentForm();
 }
@@ -641,7 +822,10 @@ async function admin() {
   const s = overview.stats;
   app.innerHTML = "";
   app.appendChild(h(`
-    <div class="admin-head"><h1>Panel de admins</h1><span class="spacer"></span><button class="btn btn-secondary btn-sm" id="refresh">Actualizar</button></div>
+    <div class="admin-head"><h1>Panel de admins</h1><span class="spacer"></span>
+      <button class="btn btn-ok btn-sm" id="grant-all">Dar acceso a todos</button>
+      <button class="btn btn-danger btn-sm" id="revoke-all">Quitar acceso a todos</button>
+      <button class="btn btn-secondary btn-sm" id="refresh">Actualizar</button></div>
     <div class="stats">
       <div class="stat"><b>${s.users}</b><span>Cuentas</span></div>
       <div class="stat"><b>${s.granted}</b><span>Con acceso</span></div>
@@ -659,15 +843,38 @@ async function admin() {
     </div>
     <div id="admin-body"></div>`));
   document.getElementById("refresh").onclick = admin;
+  document.getElementById("grant-all").onclick = () => setAccessAll("granted");
+  document.getElementById("revoke-all").onclick = () => setAccessAll("revoked");
   document.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => openTab(b.dataset.tab)));
   openTab(state.admin.tab);
+}
+
+/** Da o quita el acceso al launcher a todas las cuentas a la vez (los admins no cambian). */
+async function setAccessAll(access) {
+  const grant = access === "granted";
+  const ok = await confirmModal(
+    grant ? "Dar acceso a todos" : "Quitar acceso a todos",
+    grant
+      ? "Todas las cuentas (menos los admins) podrán jugar y usar el launcher completo. Se les desbloquea en menos de un minuto."
+      : "Ninguna cuenta (menos los admins) podrá jugar, cambiar ajustes ni usar equipos; solo cambiar su skin. Se les aplica en menos de un minuto.",
+    grant ? "Dar acceso a todos" : "Quitar acceso a todos",
+    !grant,
+  );
+  if (!ok) return;
+  try {
+    const { count } = await api("adminSetAccessAll", { access });
+    toast(count === 0 ? "No había cuentas que cambiar." : `${grant ? "Acceso dado" : "Acceso quitado"} a ${count} cuenta${count === 1 ? "" : "s"}.`);
+    admin();
+  } catch (err) {
+    toast(err.message, "error");
+  }
 }
 
 function openTab(tab) {
   state.admin.tab = tab;
   document.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   const body = document.getElementById("admin-body");
-  body.innerHTML = '<div class="sc-wait"><div class="sc-wait-ring"></div></div>';
+  body.innerHTML = skeleton(tab === "payments" ? "proofs" : tab === "audit" ? "list" : "table");
   ({ payments: paymentsTab, users: usersTab, tests: testsTab, audit: auditTab })[tab](body).catch((error) => {
     body.innerHTML = "";
     body.appendChild(h(`<div class="notice notice-red"><div class="grow">${esc(error.message)}</div></div>`));
@@ -826,7 +1033,7 @@ function closeDrawer() {
 
 async function openUser(userId) {
   closeDrawer();
-  document.body.appendChild(h('<div class="drawer-shade"></div><aside class="drawer"><div class="sc-wait"><div class="sc-wait-ring"></div></div></aside>'));
+  document.body.appendChild(h(`<div class="drawer-shade"></div><aside class="drawer">${skeleton("drawer")}</aside>`));
   document.querySelector(".drawer-shade").onclick = closeDrawer;
   const drawer = document.querySelector(".drawer");
   try {
@@ -837,7 +1044,7 @@ async function openUser(userId) {
   }
 }
 
-function renderUser(drawer, { user: u, team, sessions, payments, audit }) {
+function renderUser(drawer, { user: u, team, teams = [], sessions, payments, audit }) {
   const me = state.profile;
   const self = u.id === me.id;
   const otherAdmin = u.role === "admin" && !self;
@@ -870,6 +1077,7 @@ function renderUser(drawer, { user: u, team, sessions, payments, audit }) {
     <div class="actions">
       ${!self && !otherAdmin ? '<button class="btn btn-secondary btn-sm" data-act="password">Nueva contraseña</button>' : ""}
       <button class="btn btn-secondary btn-sm" data-act="logout">Cerrar sesiones</button>
+      ${teams.some((t) => t.id !== team?.id) ? `<button class="btn btn-secondary btn-sm" data-act="move-team">${team ? "Cambiar de equipo" : "Meter a un equipo"}</button>` : ""}
       ${team ? '<button class="btn btn-secondary btn-sm" data-act="team">Sacar del equipo</button>' : ""}
       ${!u.isTest && u.role !== "admin" ? '<button class="btn btn-secondary btn-sm" data-act="make-admin">Hacer admin</button>' : ""}
       ${otherAdmin ? '<button class="btn btn-secondary btn-sm" data-act="remove-admin">Quitar admin</button>' : ""}
@@ -921,10 +1129,41 @@ function renderUser(drawer, { user: u, team, sessions, payments, audit }) {
     team: async () => (await confirmModal("Sacar del equipo", team?.founder ? "Era el fundador: el mando pasa al miembro más antiguo." : `${u.username} sale de ${team?.team_name}.`, "Sacar")) && run("adminRemoveFromTeam", {}, "Fuera del equipo."),
     "make-admin": async () => (await confirmModal("Hacer admin", `${u.username} podrá ver y cambiar todas las cuentas.`, "Hacer admin")) && run("adminSetRole", { role: "admin" }, "Ahora es admin."),
     "remove-admin": async () => (await confirmModal("Quitar admin", `${u.username} pasa a ser jugador normal.`, "Quitar admin", true)) && run("adminSetRole", { role: "player" }, "Ya no es admin."),
+    "move-team": () => moveTeamModal(u, team, teams, run),
     note: () => run("adminSetNote", { note: drawer.querySelector("#note").value }, "Nota guardada."),
     delete: () => deleteModal(u),
   };
   drawer.querySelectorAll("[data-act]").forEach((b) => (b.onclick = () => handlers[b.dataset.act]()));
+}
+
+function moveTeamModal(u, team, teams, run) {
+  const options = teams.filter((t) => t.id !== team?.id);
+  modal(`
+    <form class="modal" id="team-form">
+      <h2>${team ? "Cambiar de equipo" : "Meter a un equipo"}</h2>
+      <p class="muted">${team
+        ? `${esc(u.username)} sale de <b style="color:var(--text)">${esc(team.team_name)}</b>${team.founder ? " (era el fundador: el mando pasa al miembro más antiguo)" : ""} y entra al equipo que elijas como miembro.`
+        : `${esc(u.username)} entra al equipo que elijas como miembro.`} Le llega un aviso en el launcher.</p>
+      <div class="team-pick">${options.map((t, i) => `
+        <label class="team-option">
+          <input type="radio" name="team" value="${t.id}" ${i === 0 ? "checked" : ""}>
+          <span class="team-swatch" style="background:${esc(t.color || "#9EC0FF")}"></span>
+          <span class="grow">${esc(t.name)}</span>
+          <span class="faint">${t.members} miembro${t.members === 1 ? "" : "s"}</span>
+        </label>`).join("")}</div>
+      <p class="error-text" id="team-error"></p>
+      <div class="modal-actions"><button type="button" class="btn btn-ghost" data-close>Cancelar</button><button class="btn btn-primary" type="submit">Mover</button></div>
+    </form>`, (layer, close) => {
+    const form = layer.querySelector("#team-form");
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const picked = form.querySelector("input[name=team]:checked");
+      if (!picked) return (layer.querySelector("#team-error").textContent = "Elige un equipo.");
+      const name = options.find((t) => t.id === picked.value)?.name || "";
+      close();
+      await run("adminSetTeam", { teamId: picked.value }, `${u.username} ahora está en ${name}.`);
+    };
+  });
 }
 
 function refreshAdminInBackground() {
@@ -1065,6 +1304,9 @@ const ACTION_NAMES = {
   admin_granted: "Hizo admin",
   admin_removed: "Quitó admin",
   team_removed: "Sacó del equipo",
+  team_changed: "Cambió de equipo",
+  access_all_granted: "Dio acceso a todos",
+  access_all_revoked: "Quitó el acceso a todos",
   note: "Editó la nota",
   user_deleted: "Borró la cuenta",
   user_created: "Creó la cuenta",
@@ -1076,7 +1318,8 @@ function describeAction(action, details = {}) {
   let text = ACTION_NAMES[action] || action;
   if (action === "ban") text += details.until ? ` hasta el ${date(details.until)}` : " para siempre";
   if ((action === "payment_approved" || action === "marked_paid") && details.amount != null) text += ` (${soles(details.amount)})`;
-  if (action === "test_users_deleted") text += ` (${details.count ?? 0})`;
+  if (action === "test_users_deleted" || action === "access_all_granted" || action === "access_all_revoked") text += ` (${details.count ?? 0})`;
+  if (action === "team_changed" && details.to) text += `: ${details.from ? details.from + " → " : ""}${details.to}`;
   return text;
 }
 
